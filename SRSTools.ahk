@@ -27,7 +27,7 @@ IfInString, link, ?
 throwaLink .= ".json"
 jsonOut := URLDownloadToVar(throwaLink)
 body := miniParser(jsonOut, "body")
-body := "[" body "](" link ")"
+body := ">[" body "](" link ")"
 clipboard := body
 TrayTip, Quote&Link, "Quote copied to clipboard", 5
 return
