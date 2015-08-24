@@ -15,14 +15,13 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 IniRead, LinkKey, keybinds.ini, QuoteAndLink, linkKey, ^+l ;reads the input file for the hotkey
 Hotkey, %LinkKey%, linkInput
 
-return
-
 linkInput: 
 ; ask for input
 
 ; GUI BEGINS
 IniRead, NP, keybinds.ini, QuoteAndLink, NP, 0
 IniRead, CK, keybinds.ini, QuoteAndLink, ShowCommentKarma, 0
+IniRead, keepInSysTray, keybinds.ini, QuoteAndLink, keepInSystemTray, 1
 Gui,Add,Tab2,x0 y0 	w400 h150,Link||Settings
 Gui,Tab,1
 Gui,Add,Button,x320 y110 w70 h30 gCancelButton,Cancel
@@ -34,27 +33,36 @@ Gui,Add,Text,x10 y40 w400 h13,Please drop the comment link into the box, and sel
 Gui,Tab,2
 Gui,Add,Checkbox,x10 y30 w70 h13 vNP Checked%NP%,NP or nah?
 Gui,Add,Checkbox,x10 y50 w180 h13 vCK Checked%CK%,Include the comment's karma
+Gui,Add,Checkbox,x10 y70 w180 h13 vkeepInSysTray Checked%keepInSysTray%, Minimize to system tray after use?
 Gui,Add,Text, x217 y50 w150 h13 center vHK,Hotkey to open this window
 Gui,Add,Hotkey,x230 y65 w120 h21 vLinkKeyTemp, %LinkKey%
 Gui,Add,Button,x10 y110 w70 h30 gApplyButton,Apply
 Gui,Add,Button,x320 y110 w70 h30 gCancelButton,Cancel
 Gui,Show, w400 h150 Center xCenter yCenter,
-return
+goto inputLoop
+
 CancelButton:
 GuiClose:
 Gui, destroy
-return
+if keepInSysTray{
+	goto inputLoop
+}
+else{
+	ExitApp 
+}
+
 ApplyButton:
 Gui, submit
 Gui, Show
 IniWrite, %CK%, keybinds.ini, QuoteAndLink, showCommentKarma
 IniWrite, %NP%, keybinds.ini, QuoteAndLink, NP
-if LinkKeyTemp
-{
+IniWrite, %keepInSysTray%, keybinds.ini, QuoteAndLink, keepInSystemTray
+if LinkKeyTemp{
 	LinkKey := LinkKeyTemp
 }
 IniWrite, %LinkKey%, keybinds.ini, QuoteAndLink, linkKey
-return
+goto inputLoop
+
 OKButton:
 Gui, submit
 Gui, destroy
@@ -105,8 +113,12 @@ if(QuoteContext = 0) {
 ;	
 ;}
 
-
-return ;end of main script, functions below
+if keepInSysTray{
+	goto inputLoop
+}
+else{
+ExitApp 
+} ;end of main script, functions below
 
 
 
@@ -136,7 +148,7 @@ miniParser(json, att, occ=1, fromEnd = 0) { ; Just a simple parser, only returns
 		stop := InStr(json, """,", false, start)
 		parsedJson := SubStr(json, start, stop-start)
 		parsedJson := StrReplace(parsedJson, "\n\n" , "  `r")
-		parsedJson := StrReplace(parsedJson, "\n\n" , "`r")
+		parsedJson := StrReplace(parsedJson, "\n" , " ")
 		parsedJson := StrReplace(parsedJson, "\""" , """")
 		parsedJson := StrReplace(parsedJson, "\\" , "\")
 		parsedJson := StrReplace(parsedJson, "\/" , "/")
@@ -149,3 +161,6 @@ miniParser(json, att, occ=1, fromEnd = 0) { ; Just a simple parser, only returns
 	}
 	return parsedJson
 }
+
+inputLoop:
+goto inputLoop
